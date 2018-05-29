@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "Installing Dropbox..."
+sudo apt install nautilus-dropbox
