@@ -47,7 +47,16 @@ fi
 
 if ! exists vagrant ; then
 	echo "Install Vagrant..."
-	apt-install vagrant
+  # We need Vagrant > 2.1 to use VVV
+	wget https://releases.hashicorp.com/vagrant/2.1.1/vagrant_2.1.1_x86_64.deb -O vagrant.deb
+  sudo dpkg -i vagrant.deb
+  rm vagrant.deb
+fi
+
+if ! exists virtualbox ; then
+	echo "Install Virtualbox..."
+	apt-install virtualbox
+  echo "Remember to enable the VTx flag in the BIOS, it's needed from Virtualbox"
 fi
 
 ### Desktop
