@@ -4,25 +4,36 @@ exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-if ! exists dropbox ; then
-  echo "Installing Dropbox..."
-  sudo apt install -y nautilus-dropbox
-fi
+apt-install() {
+  sudo apt install -y "$1"
+}
+
+### Command line
 
 if ! exists git ; then
   echo "Installing git..."
-  sudo apt install -y git
+  apt-install git
 fi
 
 if ! exists thefuck ; then
   echo "Install The Fuck..."
-  sudo apt install -y python3-dev python3-pip
+  apt-install python3-dev python3-pip
   sudo pip3 install thefuck
 fi
 
+if ! exists zsh ; then
+  echo "Installing zsh..."
+  apt-install zsh
+  chsh -s $(which zsh)
+  sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
+fi
+
+
+### Editor
+
 if ! exists vim ; then
   echo "Installing vim..."
-  sudo apt install -y vim
+  apt-install vim
 fi
 
 if ! exists atom ; then
@@ -30,6 +41,20 @@ if ! exists atom ; then
 	wget https://atom.io/download/deb -O atom.deb
 	sudo dpkg -i atom.deb
 	rm atom.deb
+fi
+
+### Tools
+
+if ! exists vagrant ; then
+	echo "Install Vagrant..."
+	apt-install vagrant
+fi
+
+### Desktop
+
+if ! exists dropbox ; then
+  echo "Installing Dropbox..."
+  apt-install nautilus-dropbox
 fi
 
 echo "Done!"
