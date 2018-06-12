@@ -4,9 +4,14 @@ exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
+package_exists() {
+    dpkg -l "$1" &> /dev/null
+}
+
 apt-install() {
   sudo apt install -y "$1"
 }
+
 
 ### Command line
 
@@ -43,6 +48,7 @@ if ! exists atom ; then
 	rm atom.deb
 fi
 
+
 ### Tools
 
 if ! exists vagrant ; then
@@ -59,11 +65,105 @@ if ! exists virtualbox ; then
   echo "Remember to enable the VTx flag in the BIOS, it's needed from Virtualbox"
 fi
 
+if package_exists nfs-kernel-server; then
+  echo "Install NFS client and server..."
+  apt-install nfs-common nfs-kernel-server
+fi
+exit
+
+if [ ! -d "$HOME/.asdf/" ]; then
+  echo "Install asdf build dependencies..."
+  sudo apt install -y automake autoconf libreadline-dev libncurses-dev libssl-dev libyaml-dev libxslt-dev libffi-dev libtool unixodbc-dev
+  echo "Installing asdf..."
+  git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf/" --branch v0.5.0
+  source "$HOME/.asdf/asdf.sh"
+fi
+
+# thanks https://github.com/thoughtbot/laptop
+install_asdf_language() {
+  local language="$1"
+  local version
+  version="$(asdf list-all "$language" | tail -1)"
+
+  if ! asdf list "$language" | grep -Fq "$version"; then
+    asdf install "$language" "$version"
+    asdf global "$language" "$version"
+  fi
+}
+
+if [ ! -d "$HOME/.devenv/" ]; then
+  echo "Installing devenv..."
+  git clone https://github.com/endorama/devenv.git ~/.devenv
+  echo 'eval "$($HOME/.devenv/bin/devenv init -)"' >> ~/.zshrc
+fi
+
+
+### PHP
+
+if ! exists php ; then
+  echo "Install PHP build dependencies..."
+  sudo apt install -y curl build-essential libjpeg-dev libpng-dev openssl libcurl4-openssl-dev pkg-config libedit-dev zlib1g-dev libicu-dev libxml2-dev gettext bison libmysqlclient-dev libpq-dev
+  install_asdf_language php
+fi
+
+if ! exists composer ; then
+  echo "Install Composer..."
+  php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+  php -r "if (hash_file('SHA384', 'composer-setup.php') === '544e09ee996cdf60ece3804abc52599c22b1f40f4323403c44d44fdfdd586475ca9813a858088ffbc1f233e9b180f061') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+  php composer-setup.php
+  php -r "unlink('composer-setup.php');"
+  sudo mv composer.phar /usr/local/bin/composer
+fi
+
+
 ### Desktop
 
 if ! exists dropbox ; then
   echo "Installing Dropbox..."
   apt-install nautilus-dropbox
 fi
+
+if ! exists pritunl-client ; then
+  echo "Installing pritunl..."
+  sudo tee -a /etc/apt/sources.list.d/pritunl.list << EOF
+deb http://repo.pritunl.com/stable/apt bionic main
+EOF
+
+  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv 7568D9BB55FF9E5287D586017AE645C0CF8E292A
+  sudo apt update
+  sudo apt install -y pritunl-client-gtk
+fi
+
+if ! exists indicator-multiload ; then
+  echo "Customising desktop..."
+
+  # Thanks https://github.com/alrra/dotfiles
+  echo "Turn off 'Remote Search' so that search terms in Dash do not get sent over the internet..."
+  gsettings set com.canonical.Unity.Lenses remote-content-search 'none'
+  echo "Disable Dash 'More suggestions' section..."
+  gsettings set com.canonical.Unity.ApplicationsLens display-available-apps false
+
+  echo "Set clock as I like..."
+  gsettings set com.canonical.indicator.datetime show-date true
+  gsettings set com.canonical.indicator.datetime show-seconds true
+  gsettings set com.canonical.indicator.datetime show-day true
+  gsettings set com.canonical.indicator.datetime show-week-numbers true
+
+  echo "Keyboards layouts..."
+  gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'gb'), ('xkb', 'us'), ('xkb', 'it')]"
+
+  echo "Load indicators..."
+  sudo apt install indicator-multiload
+  # You need to start it once so that it starts again
+  indicator-multiload &
+  gsettings set de.mh21.indicator-multiload.graphs.disk enabled true
+  gsettings set de.mh21.indicator-multiload.graphs.load enabled true
+  gsettings set de.mh21.indicator-multiload.graphs.mem enabled true
+  gsettings set de.mh21.indicator-multiload.graphs.net enabled true
+  gsettings set de.mh21.indicator-multiload.graphs.swap enabled true
+  gsettings set de.mh21.indicator-multiload.general color-scheme 'traditional'
+  gsettings set de.mh21.indicator-multiload.general width 25
+fi
+
 
 echo "Done!"
