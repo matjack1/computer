@@ -57,6 +57,14 @@ if ! exists vagrant ; then
 	wget https://releases.hashicorp.com/vagrant/2.1.1/vagrant_2.1.1_x86_64.deb -O vagrant.deb
   sudo dpkg -i vagrant.deb
   rm vagrant.deb
+  # Again for VVV compatibility
+  vagrant plugin install vagrant-hostsupdater
+  sudo tee -a /etc/sudoers.d/vagrant_hostsupdater << END
+# Allow passwordless startup of Vagrant with vagrant-hostsupdater.
+Cmnd_Alias VAGRANT_HOSTS_ADD = /bin/sh -c 'echo "*" >> /etc/hosts'
+Cmnd_Alias VAGRANT_HOSTS_REMOVE = /bin/sed -i -e /*/ d /etc/hosts
+%sudo ALL=(root) NOPASSWD: VAGRANT_HOSTS_ADD, VAGRANT_HOSTS_REMOVE
+END
 fi
 
 if ! exists virtualbox ; then
@@ -95,6 +103,14 @@ if [ ! -d "$HOME/.devenv/" ]; then
   echo "Installing devenv..."
   git clone https://github.com/endorama/devenv.git ~/.devenv
   echo 'eval "$($HOME/.devenv/bin/devenv init -)"' >> ~/.zshrc
+fi
+
+if ! exists dbeaver ; then
+	echo "Install DBeaver..."
+  apt-install openjdk-8-jre-headless
+	wget https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb -O dbeaver.deb
+	sudo dpkg -i dbeaver.deb
+	rm dbeaver.deb
 fi
 
 
