@@ -5,10 +5,10 @@ exists() {
 }
 
 package_exists() {
-    dpkg -l "$1" &> /dev/null
+  dpkg -l "$1" &> /dev/null
 }
 
-apt-install() {
+apt_install() {
   sudo apt install -y "$1"
 }
 
@@ -17,18 +17,18 @@ apt-install() {
 
 if ! exists git ; then
   echo "Installing git..."
-  apt-install git
+  apt_install git
 fi
 
 if ! exists thefuck ; then
   echo "Install The Fuck..."
-  apt-install python3-dev python3-pip
+  apt_install python3-dev python3-pip
   sudo pip3 install thefuck
 fi
 
 if ! exists zsh ; then
   echo "Installing zsh..."
-  apt-install zsh
+  apt_install zsh
   chsh -s $(which zsh)
   sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
 fi
@@ -38,23 +38,23 @@ fi
 
 if ! exists vim ; then
   echo "Installing vim..."
-  apt-install vim
+  apt_install vim
 fi
 
 if ! exists atom ; then
-	echo "Install Atom..."
-	wget https://atom.io/download/deb -O atom.deb
-	sudo dpkg -i atom.deb
-	rm atom.deb
+  echo "Install Atom..."
+  wget https://atom.io/download/deb -O atom.deb
+  sudo dpkg -i atom.deb
+  rm atom.deb
 fi
 
 
 ### Tools
 
 if ! exists vagrant ; then
-	echo "Install Vagrant..."
+  echo "Install Vagrant..."
   # We need Vagrant > 2.1 to use VVV
-	wget https://releases.hashicorp.com/vagrant/2.1.1/vagrant_2.1.1_x86_64.deb -O vagrant.deb
+  wget https://releases.hashicorp.com/vagrant/2.1.1/vagrant_2.1.1_x86_64.deb -O vagrant.deb
   sudo dpkg -i vagrant.deb
   rm vagrant.deb
   # Again for VVV compatibility
@@ -68,16 +68,15 @@ END
 fi
 
 if ! exists virtualbox ; then
-	echo "Install Virtualbox..."
-	apt-install virtualbox
+  echo "Install Virtualbox..."
+  apt_install virtualbox
   echo "Remember to enable the VTx flag in the BIOS, it's needed from Virtualbox"
 fi
 
-if package_exists nfs-kernel-server; then
+if ! package_exists nfs-kernel-server; then
   echo "Install NFS client and server..."
-  apt-install nfs-common nfs-kernel-server
+  apt_install nfs-common nfs-kernel-server
 fi
-exit
 
 if [ ! -d "$HOME/.asdf/" ]; then
   echo "Install asdf build dependencies..."
@@ -106,11 +105,11 @@ if [ ! -d "$HOME/.devenv/" ]; then
 fi
 
 if ! exists dbeaver ; then
-	echo "Install DBeaver..."
-  apt-install openjdk-8-jre-headless
-	wget https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb -O dbeaver.deb
-	sudo dpkg -i dbeaver.deb
-	rm dbeaver.deb
+  echo "Install DBeaver..."
+  apt_install openjdk-8-jre-headless
+  wget https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb -O dbeaver.deb
+  sudo dpkg -i dbeaver.deb
+  rm dbeaver.deb
 fi
 
 
@@ -136,7 +135,7 @@ fi
 
 if ! exists dropbox ; then
   echo "Installing Dropbox..."
-  apt-install nautilus-dropbox
+  apt_install nautilus-dropbox
 fi
 
 if ! exists pritunl-client ; then
